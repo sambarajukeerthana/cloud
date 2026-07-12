@@ -1,0 +1,66 @@
+<!-- templates/checkout.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: url("/static/images/checkout_bg.jpg") no-repeat center center fixed;
+            background-size: cover;
+            background-position: center;
+            color: #fff;
+            text-align: center;
+        }
+        .container {
+            background-color: rgba(0, 0, 0, 0.7);
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 12px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            padding: 10px 0;
+            border-bottom: 1px solid #ccc;
+        }
+        a, .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #ff9900;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        a:hover, .btn:hover {
+            background-color: #e68a00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Checkout</h1>
+        {% if cart %}
+            <ul>
+                {% for item in cart %}
+                    <li>{{ item.name }} - ₹{{ item.price }}</li>
+                {% endfor %}
+            </ul>
+            <p><strong>Total: ₹{{ total }}</strong></p>
+            <p>Thank you for your order!</p>
+            <a class="btn" href="{{ url_for('payment') }}">Proceed to Payment</a>
+        {% else %}
+            <p>Your cart is empty.</p>
+        {% endif %}
+        <br>
+        <a href="{{ url_for('user_dashboard') }}">← Back to Menu</a>
+    </div>
+</body>
+</html>

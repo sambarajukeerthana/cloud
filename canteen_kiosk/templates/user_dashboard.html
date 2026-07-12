@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Dashboard</title>
+    <style>
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+                        url("/static/images/canteen_blurred.jpg") no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            margin-top: 60px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+
+        .top-bar {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button[type="button"] {
+            background-color: #dc3545;
+        }
+
+        button[type="button"]:hover {
+            background-color: #c82333;
+        }
+
+        .filter-form {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 20px auto;
+            width: 80%;
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            color: white;
+        }
+
+        .filter-form input,
+        .filter-form select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        .menu-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .menu-item {
+            background-color: rgba(255, 255, 255, 0.95);
+            color: #000;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 15px;
+            width: 220px;
+            height: 420px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+
+        .menu-item h3 {
+            margin: 10px 0 5px;
+            font-size: 18px;
+        }
+
+        .menu-item p {
+            margin: 0 0 10px;
+            font-size: 16px;
+        }
+
+        .menu-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .menu-item form {
+            margin-top: auto;
+        }
+
+        .flash {
+            text-align: center;
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            margin: 10px auto;
+            width: fit-content;
+            border-radius: 5px;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            font-size: 14px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .section-heading {
+            text-align: center;
+            color: #ffffff;
+            margin-top: 40px;
+            font-size: 2.2em;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .menu-item {
+                width: 90%;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            button {
+                font-size: 14px;
+            }
+
+            .filter-form {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1><b>Welcome to the Canteen</b></h1>
+
+    <div class="top-bar">
+        <a href="{{ url_for('view_cart') }}">
+            <button>🛒 View Cart</button>
+        </a>
+    </div>
+
+    <!-- Filter Form -->
+    <form class="filter-form" method="GET" action="{{ url_for('user_dashboard') }}">
+        <input type="text" name="search" id="searchInput" placeholder="Search food..." value="{{ request.args.get('search', '') }}">
+        <button type="button" onclick="startVoiceSearch()" title="Click to speak">🎤 Speak</button>
+
+        <input type="number" step="0.01" name="min_price" placeholder="Min price" value="{{ request.args.get('min_price', '') }}">
+        <input type="number" step="0.01" name="max_price" placeholder="Max price" value="{{ request.args.get('max_price', '') }}">
+        <select name="category">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+                <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="submit">Filter</button>
+            <a href="{{ url_for('user_dashboard') }}">
+                <button type="button">Clear Filter</button>
+            </a>
+        </div>
+    </form>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash">
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Menu Display -->
+    {% if menu %}
+        {% set section_order = ['Breakfast', 'Lunch', 'Snacks', 'Ice Creams', 'Beverages'] %}
+        {% for section in section_order %}
+            {% set section_items = menu | selectattr('category', 'equalto', section) | list %}
+            {% if section_items %}
+                <h2 class="section-heading">{{ section }}</h2>
+                <div class="menu-container">
+                    {% for item in section_items %}
+                        <div class="menu-item">
+                            <h3>{{ item.name }}</h3>
+                            <p>Price: ₹{{ item.price }}</p>
+                            {% if item.image %}
+                                <img src="{{ url_for('menu_image', item_id=item.id) }}?t={{ loop.index }}" alt="Image of {{ item.name }}">
+                            {% endif %}
+                            <form method="POST" action="{{ url_for('add_to_cart') }}">
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <label for="quantity_{{ item.id }}">Quantity:</label>
+                                <input type="number" id="quantity_{{ item.id }}" name="quantity" value="1" min="1" max="10">
+                                <button type="submit">Add to Cart</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <p style="text-align: center; color: #fff;">No menu items found.</p>
+    {% endif %}
+
+    <!-- Voice Assistant Script -->
+    <script>
+        function startVoiceSearch() {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert("Your browser does not support speech recognition.");
+                return;
+            }
+
+            const recognition = new webkitSpeechRecognition();
+            recognition.lang = 'en-IN';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('searchInput').value = transcript;
+                document.querySelector('.filter-form').submit();
+            };
+
+            recognition.onerror = function(event) {
+                alert("Speech recognition error: " + event.error);
+            };
+
+            recognition.start();
+        }
+    </script>
+</body>
+</html>

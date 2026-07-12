@@ -1,0 +1,129 @@
+<!-- templates/payment.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-image: url('/static/images/payment_bg.jpg'); /* update path as needed */
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .payment-card {
+            background-color: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .payment-card h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .pay-button {
+            background-color: #00c389;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .pay-button:hover {
+            background-color: #00aa77;
+        }
+
+        .qr-section {
+            background-color: #fff;
+            color: #000;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .qr-section img {
+            width: 180px;
+            height: 180px;
+            margin-bottom: 10px;
+        }
+
+        .qr-section p {
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-card">
+        <h2>Choose Payment Method</h2>
+        <p>Total Amount: ₹{{ total / 100 }}</p>
+        <button class="pay-button" id="payBtn">Pay with Razorpay (Card / UPI)</button>
+
+        <div class="qr-section">
+            <p>Or scan this UPI QR Code using PhonePe, GPay, Paytm:</p>
+            <img src="/static/images/fake_upi_qr.png" alt="QR Code">
+            <p>UPI ID: <strong>testuser@upi</strong></p>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        document.getElementById("payBtn").onclick = function(e) {
+            var options = {
+                "key": "{{ razorpay_key_id }}",
+                "amount": "{{ total }}",
+                "currency": "INR",
+                "name": "Canteen Kiosk",
+                "description": "Order Payment",
+                "order_id": "{{ razorpay_order_id }}",
+                "handler": function (response) {
+                    fetch("/verify_payment", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.token_number) {
+                            window.location.href = "/payment_success?token=" + data.token_number;
+                        } else {
+                            alert("Payment verification failed. Please try again.");
+                        }
+                    });
+                },
+                "prefill": {
+                    "name": "{{ session['username'] if session['username'] else '' }}"
+                },
+                "theme": {
+                    "color": "#3399cc"
+                }
+            };
+            var rzp1 = new Razorpay(options);
+            rzp1.open();
+            e.preventDefault();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sales Report</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 40px;
+            margin: 0;
+            background: linear-gradient(to right, #dfe9f3, #ffffff);
+            color: #2c3e50;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        form {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 0 auto 30px auto;
+        }
+
+        input[type="date"], button, #itemSearch {
+            padding: 10px 14px;
+            margin: 8px 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #itemSearch {
+            display: block;
+            margin: 0 auto 20px auto;
+            width: 250px;
+        }
+
+        table {
+            width: 90%;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f8f8;
+        }
+
+        .no-data {
+            color: #999;
+            font-style: italic;
+        }
+
+        .back-button {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .back-button a button {
+            background-color: #2ecc71;
+        }
+
+        .back-button a button:hover {
+            background-color: #27ae60;
+        }
+
+        .clear-filters {
+            background-color: #e74c3c;
+            margin-left: 10px;
+        }
+
+        .clear-filters:hover {
+            background-color: #c0392b;
+        }
+
+        .pdf-button {
+            background-color: #8e44ad;
+        }
+
+        .pdf-button:hover {
+            background-color: #732d91;
+        }
+    </style>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+<body>
+    <h1>Sales Report</h1>
+
+    <form method="get">
+        <div>
+            <label><strong>Filter by Single Date:</strong></label>
+            <input type="date" name="selected_date" value="{{ request.args.get('selected_date', '') }}">
+            <button type="submit">Search</button>
+        </div>
+
+        <div>
+            <label><strong>Or Filter by Date Range:</strong></label>
+            From: <input type="date" name="start_date" value="{{ request.args.get('start_date', '') }}">
+            To: <input type="date" name="end_date" value="{{ request.args.get('end_date', '') }}">
+            <button type="submit">Search Range</button>
+        </div>
+
+        <button type="button" class="clear-filters" onclick="clearFilters()">Clear Filters</button>
+    </form>
+
+    <input type="text" id="itemSearch" placeholder="Search item...">
+
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Item Name</th>
+            <th>Quantity Sold</th>
+            <th>Amount (₹)</th>
+        </tr>
+        {% if report %}
+            {% for row in report %}
+                <tr>
+                    <td>{{ row.sale_day }}</td>
+                    <td>{{ row.name }}</td>
+                    <td>{{ row.total_sold }}</td>
+                    <td>{{ "%.2f"|format(row.total_revenue) }}</td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="4" class="no-data">No sales data found.</td>
+            </tr>
+        {% endif %}
+
+        {% if report %}
+        <tr style="font-weight: bold; background-color: #ecf0f1;">
+            <td colspan="3" style="text-align: right;">Total Revenue:</td>
+            <td>₹{{ "%.2f"|format(total_revenue) }}</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <!-- Chart Containers -->
+    <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 40px; margin-top: 40px;">
+        <div id="revenueChart"></div>
+        <div id="quantityChart"></div>
+    </div>
+
+    <div class="back-button">
+        <a href="{{ url_for('admin_dashboard') }}">
+            <button>Back to Dashboard</button>
+        </a>
+    </div>
+
+    <script>
+        function clearFilters() {
+            document.querySelector('[name="selected_date"]').value = '';
+            document.querySelector('[name="start_date"]').value = '';
+            document.querySelector('[name="end_date"]').value = '';
+            document.getElementById('itemSearch').value = '';
+            window.location.href = window.location.pathname;
+        }
+
+        document.getElementById('itemSearch').addEventListener('keyup', function () {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll("table tr:not(:first-child)");
+
+            rows.forEach(row => {
+                const itemName = row.cells[1]?.textContent.toLowerCase();
+                if (itemName && itemName.includes(filter)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+
+        // Google Charts for Revenue and Quantity
+        google.charts.load('current', { packages: ['corechart'] });
+        google.charts.setOnLoadCallback(drawCharts);
+
+        function drawCharts() {
+            var revenueData = google.visualization.arrayToDataTable({{ chart_data | tojson | safe }});
+            var revenueOptions = {
+                title: 'Revenue Distribution by Item',
+                pieHole: 0.4,
+                width: 600,
+                height: 400,
+                colors: ['#3498db', '#2ecc71', '#e67e22', '#9b59b6', '#f39c12']
+            };
+            var revenueChart = new google.visualization.PieChart(document.getElementById('revenueChart'));
+            revenueChart.draw(revenueData, revenueOptions);
+
+            var quantityData = google.visualization.arrayToDataTable({{ quantity_chart_data | tojson | safe }});
+            var quantityOptions = {
+                title: 'Quantity Sold by Item',
+                pieHole: 0.4,
+                width: 600,
+                height: 400,
+                colors: ['#1abc9c', '#e74c3c', '#34495e', '#16a085', '#d35400']
+            };
+            var quantityChart = new google.visualization.PieChart(document.getElementById('quantityChart'));
+            quantityChart.draw(quantityData, quantityOptions);
+        }
+    </script>
+</body>
+</html>

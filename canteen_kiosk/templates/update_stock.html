@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Stock</title>
+</head>
+<body>
+    <h2>Update Stock for {{ item.name }}</h2>
+    <form method="POST">
+        <label>Current Stock:</label>
+        <input type="number" name="stock" value="{{ item.stock or 0 }}" required>
+        <button type="submit">Update</button>
+    </form>
+    <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+</body>
+</html>

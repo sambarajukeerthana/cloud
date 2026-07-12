@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Canteen Kiosk - Home</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: url("/static/images/home_bg.jpg") no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .container {
+            margin-top: 150px;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 60px 40px;
+            border-radius: 15px;
+            display: inline-block;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        h1 {
+            font-size: 42px;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            margin: 15px;
+            font-size: 20px;
+            border: none;
+            border-radius: 10px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #218838;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+                margin-top: 100px;
+                padding: 30px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .btn {
+                font-size: 18px;
+                padding: 12px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to BMS College Canteen</h1>
+        <a href="{{ url_for('login') }}" class="btn">Admin Login</a>
+    </div>
+</body>
+</html>

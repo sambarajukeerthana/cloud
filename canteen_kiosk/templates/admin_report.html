@@ -1,0 +1,16 @@
+<form method="get">
+    From: <input type="date" name="start_date">
+    To: <input type="date" name="end_date">
+    <button type="submit">Filter</button>
+</form>
+
+<table>
+    <tr><th>Date</th><th>Item Name</th><th>Quantity Sold</th></tr>
+    {% for row in report %}
+    <tr>
+        <td>{{ row.sale_day }}</td>
+        <td>{{ row.name }}</td>
+        <td>{{ row.total_sold }}</td>
+    </tr>
+    {% endfor %}
+</table>

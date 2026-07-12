@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Cart</title>
+    <style>
+        body {
+            background: url("/static/images/cart_bg.jpg") no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            text-align: center;
+        }
+        .container {
+            margin-top: 60px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: #fff;
+            color: #000;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px 20px;
+        }
+        .btn {
+            padding: 5px 10px;
+            margin: 2px;
+            background-color: #0d0d0d;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background-color: #0b0b0b;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .quantity {
+            font-weight: bold;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Your Cart</h1>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div style="margin-bottom: 10px;">
+                {% for message in messages %}
+                    <p style="background: #28a745; color: white; padding: 10px; border-radius: 5px;">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        {% if cart %}
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>Price (each)</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+                <th>Action</th>
+            </tr>
+            {% for item in cart %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>₹{{ item.price }}</td>
+                <td>
+                    <a class="btn" href="{{ url_for('decrement_quantity', index=loop.index0) }}">➖</a>
+                    <span class="quantity">{{ item.quantity }}</span>
+                    <a class="btn" href="{{ url_for('increment_quantity', index=loop.index0) }}">➕</a>
+                </td>
+                <td>₹{{ item.price * item.quantity }}</td>
+                <td><a class="btn btn-danger" href="{{ url_for('remove_from_cart', index=loop.index0) }}">Remove</a></td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <th colspan="3">Total</th>
+                <th colspan="2">₹{{ total }}</th>
+            </tr>
+        </table>
+        {% else %}
+        <p>Your cart is empty.</p>
+        {% endif %}
+
+        <div>
+            <a class="btn" href="{{ url_for('user_dashboard') }}">← Back to Menu</a>
+            <a class="btn btn-danger" href="{{ url_for('clear_cart') }}">🗑️ Clear Cart</a>
+            {% if cart %}
+            <a class="btn" href="{{ url_for('checkout') }}">💳 Checkout</a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

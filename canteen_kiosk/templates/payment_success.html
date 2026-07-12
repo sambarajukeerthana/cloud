@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Successful</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px 20px;
+            text-align: center;
+            background-image: url('{{ url_for("static", filename="images/success_bg.jpg") }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #222;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 20px;
+            border-radius: 12px;
+        }
+
+        .message {
+            font-size: 36px;
+            color: #0a5d3d;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .sub-message {
+            font-size: 20px;
+            margin-bottom: 25px;
+        }
+
+        .token {
+            font-size: 40px;
+            font-weight: bold;
+            color: yellow;
+            background: rgba(0, 0, 0, 0.75);
+            display: inline-block;
+            padding: 18px 32px;
+            border-radius: 12px;
+            margin-top: 20px;
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 10px rgba(255, 255, 0, 0.8);
+        }
+
+        .prep-time {
+            font-size: 20px;
+            color: #034828;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+
+        a, button {
+            display: inline-block;
+            margin-top: 35px;
+            text-decoration: none;
+            padding: 14px 28px;
+            background: #00b386;
+            color: white;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        a:hover, button:hover {
+            background: #009973;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        .receipt {
+            text-align: left;
+            margin: 30px auto 10px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-family: monospace;
+        }
+
+        .receipt h3 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .receipt table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .receipt th, .receipt td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .receipt .total {
+            text-align: right;
+            font-weight: bold;
+            padding-top: 10px;
+        }
+
+        .feedback-section {
+            margin-top: 40px;
+        }
+
+        .feedback-section img {
+            width: 180px;
+            height: 180px;
+            margin-top: 10px;
+            border: 4px solid #00b386;
+            border-radius: 8px;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .receipt, .receipt * {
+                visibility: visible;
+            }
+            .receipt {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: #fff;
+                box-shadow: none;
+                border: none;
+                padding: 40px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .token {
+                font-size: 28px;
+                padding: 14px 24px;
+            }
+            .message {
+                font-size: 28px;
+            }
+            .sub-message, .prep-time {
+                font-size: 16px;
+            }
+            a, button {
+                padding: 12px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="message" role="alert">✅ Payment Successful!</div>
+        <div class="sub-message">Thank you for your order. Your food is being prepared.</div>
+
+        <div class="token">Token Number: <span id="token-value">{{ token }}</span></div>
+        <div class="prep-time">⏱️ Estimated Preparation Time: 10–15 minutes</div>
+
+        <div class="feedback-section">
+            <h3>📱 We'd love your feedback!</h3>
+            <p>Scan the QR code below to rate your experience:</p>
+            <img src="data:image/png;base64,{{ qr_code }}" alt="Feedback QR">
+        </div>
+
+        <div class="receipt" id="receipt">
+            <h3>🧾 BMS College Canteen</h3>
+            <p><strong>Token:</strong> {{ token }}</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.item_name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>₹{{ '%.2f' % (item.quantity * item.price) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="total">Total: ₹{{ '%.2f' % total_amount }}</div>
+        </div>
+
+        <button onclick="window.print()">🖨️ Print Receipt</button>
+        <a href="{{ url_for('user_dashboard') }}">⬅️ Back to Menu</a>
+
