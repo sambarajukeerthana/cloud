@@ -1,0 +1,12 @@
+cd C:\Users\keert\Downloads
+
+ssh -i kiosk-key.pem ubuntu@13.205.151.22
+
+cd ~/canteen_kiosk
+
+source venv/bin/activate
+
+python3 app.py
+
+Open Browser:
+http://13.205.151.22:5000
